@@ -50,7 +50,28 @@ export default {
     notSpecialCharacters: 'Special characters are not allowed',
     isEqual: 'The two are not equal',
     // 列设置
-    setting: 'Setting'
+    setting: 'Setting',
+    // Catalog translations
+    catalogTitle: 'Catalog & Inventory',
+    addProduct: 'Add Product',
+    editProduct: 'Edit Product',
+    viewByLocation: 'View by Location',
+    viewAllProducts: 'View All Products',
+    catalogLoadError: 'Failed to load catalog',
+    saveSuccess: 'Saved successfully',
+    saveError: 'Failed to save product',
+    deleteSuccess: 'Deleted successfully',
+    deleteError: 'Failed to delete product',
+    deleteConfirm: 'Delete {name}?',
+    actions: 'Actions',
+    edit: 'Edit',
+    delete: 'Delete',
+    name: 'Name',
+    category: 'Category',
+    sku: 'SKU',
+    unit: 'Unit',
+    isComposite: 'Is Composite',
+    isActive: 'Is Active'
   },
   lock: {
     lockScreen: 'Lock screen',
