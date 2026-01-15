@@ -1,0 +1,121 @@
+import { SUCCESS_CODE } from '@/constants'
+import { MockMethod } from 'vite-plugin-mock'
+
+const timeout = 1000
+
+export default [
+  {
+    url: '/mock/example/treeList',
+    method: 'get',
+    timeout,
+    response: ({ query }) => {
+      const { pageIndex = 1, pageSize = 10 } = query
+      const startIndex = (Number(pageIndex) - 1) * Number(pageSize)
+      
+      // Sample hierarchical data for products
+      const mockData = [
+        {
+          id: 1,
+          title: 'Wine Collection',
+          author: 'John Doe',
+          display_time: '2023-05-15',
+          importance: 1,
+          pageviews: 1234,
+          children: [
+            {
+              id: 11,
+              title: 'Cabernet Sauvignon 2018',
+              author: 'Jane Smith',
+              display_time: '2023-04-20',
+              importance: 2,
+              pageviews: 567,
+              children: [
+                {
+                  id: 111,
+                  title: 'Cabernet Bottle (750ml)',
+                  author: 'Jane Smith',
+                  display_time: '2023-04-20',
+                  importance: 3,
+                  pageviews: 345
+                }
+              ]
+            },
+            {
+              id: 12,
+              title: 'Chardonnay Reserve',
+              author: 'Bob Johnson',
+              display_time: '2023-05-10',
+              importance: 1,
+              pageviews: 789
+            }
+          ]
+        },
+        {
+          id: 2,
+          title: 'Olive Products',
+          author: 'Alice Brown',
+          display_time: '2023-06-01',
+          importance: 2,
+          pageviews: 2345,
+          children: [
+            {
+              id: 21,
+              title: 'Greek Olives',
+              author: 'Charlie Wilson',
+              display_time: '2023-05-25',
+              importance: 2,
+              pageviews: 890
+            }
+          ]
+        },
+        {
+          id: 3,
+          title: 'Composite Products',
+          author: 'David Lee',
+          display_time: '2023-06-10',
+          importance: 1,
+          pageviews: 1567,
+          children: [
+            {
+              id: 31,
+              title: 'Wine & Cheese Set',
+              author: 'Emma Davis',
+              display_time: '2023-06-05',
+              importance: 1,
+              pageviews: 456,
+              children: [
+                {
+                  id: 311,
+                  title: 'Cabernet Sauvignon 2018',
+                  author: 'Jane Smith',
+                  display_time: '2023-04-20',
+                  importance: 2,
+                  pageviews: 567
+                },
+                {
+                  id: 312,
+                  title: 'Aged Cheddar',
+                  author: 'Frank Miller',
+                  display_time: '2023-06-08',
+                  importance: 3,
+                  pageviews: 234
+                }
+              ]
+            }
+          ]
+        }
+      ]
+
+      const total = mockData.length
+      const data = mockData.slice(startIndex, startIndex + Number(pageSize))
+
+      return {
+        code: SUCCESS_CODE,
+        data: {
+          list: data,
+          total
+        }
+      }
+    }
+  }
+] as MockMethod[]

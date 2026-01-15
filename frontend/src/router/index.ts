@@ -134,6 +134,27 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
     ]
   },
   {
+    path: '/catalog',
+    component: Layout,
+    redirect: '/catalog/index',
+    name: 'Catalog',
+    meta: {
+      title: 'Каталог',
+      icon: 'vi-ant-design:bars-outlined'
+    },
+    children: [
+      {
+        path: 'index',
+        component: () => import('@/views/Catalog/index.vue'),
+        name: 'CatalogIndex',
+        meta: {
+          title: 'Каталог товаров',
+          noCache: true
+        }
+      }
+    ]
+  },
+  {
     path: '/external-link',
     component: Layout,
     meta: {},
