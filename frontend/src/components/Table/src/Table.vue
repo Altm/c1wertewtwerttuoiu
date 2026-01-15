@@ -518,8 +518,8 @@ export default defineComponent({
         <div v-loading={unref(getProps).loading}>
           {unref(getProps).customContent ? (
             <div class="flex flex-wrap">
-              {unref(getProps)?.data?.length ? (
-                unref(getProps)?.data.map((item) => {
+              {unref(getProps)?.data && unref(getProps).data.length ? (
+                unref(getProps).data.map((item) => {
                   const cardSlots = {
                     default: () => {
                       return getSlot(slots, 'content', item)
