@@ -202,23 +202,6 @@ const toggleExpand = (row: Product) => {
   row.expanded = !row.expanded
 }
 
-// Make sure saveProduct method is defined
-const saveProduct = async () => {
-  try {
-    if (dialogType.value === 'add') {
-      await request.post({ url: '/api/v1/products', data: currentProduct })
-    } else {
-      await request.put({ url: `/api/v1/products/${currentProduct.id}`, data: currentProduct })
-    }
-    ElMessage.success('Saved successfully')
-    dialogVisible.value = false
-    fetchCatalog()
-  } catch (error) {
-    console.error('Error saving product:', error)
-    ElMessage.error('Failed to save product')
-  }
-}
-
 onMounted(() => {
   fetchAllProducts() // Fetch all products initially
 })
