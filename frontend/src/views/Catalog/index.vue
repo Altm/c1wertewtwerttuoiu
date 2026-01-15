@@ -28,6 +28,13 @@ interface Product {
   // Composite specific
   components?: ProductComponent[]
   children?: Product[]
+  // Additional fields from API response
+  product_type_id?: number
+  is_composite?: boolean
+  is_active?: boolean
+  sku?: string
+  primary_category?: string
+  base_unit_code?: string
 }
 
 // Backend API calls
@@ -49,7 +56,14 @@ const defaultProduct: Product = {
   weight_g: 300,
   calories_per_100g: 150,
   has_pit: true,
-  components: []
+  components: [],
+  // Additional fields from API response (with sensible defaults)
+  product_type_id: 0,
+  is_composite: false,
+  is_active: true,
+  sku: '',
+  primary_category: 'wine',
+  base_unit_code: 'bottle'
 }
 
 const currentProduct = reactive<Product>({ ...defaultProduct })
@@ -57,28 +71,51 @@ const currentProduct = reactive<Product>({ ...defaultProduct })
 const fetchCatalog = async () => {
   loading.value = true
   try {
-    // Get catalog from backend API
-    const res = await request.get({ url: '/api/v1/products' })
-    
+    // Get all products from backend API (this gives us product metadata)
+    const productsRes = await request.get({ url: '/api/v1/products' });
+    // Also get catalog data which includes pricing and stock info
+    const catalogRes = await request.get({ url: '/api/v1/catalog?location=1' });
+
+    // Create a map of catalog data by product ID for quick lookup
+    const catalogMap: Record<number, any> = {};
+    if (catalogRes && catalogRes.data && Array.isArray(catalogRes.data.items)) {
+      catalogRes.data.items.forEach(item => {
+        catalogMap[item.id] = item;
+      });
+    }
+
     // Transform backend data to match our interface
-    if (res && res.data && Array.isArray(res.data)) {
-      tableData.value = res.data.map(item => ({
-        id: item.id,
-        name: item.name,
-        type: item.is_composite ? 'composite' : item.primary_category || 'wine',
-        price: item.price || 0,
-        stock: item.stock || 0,
-        vintage_year: item.attributes?.vintage_year,
-        volume_l: item.attributes?.volume_l,
-        alcohol_pct: item.attributes?.alcohol_pct,
-        glasses_per_bottle: item.attributes?.glasses_per_bottle,
-        weight_g: item.attributes?.weight_g,
-        calories_per_100g: item.attributes?.calories_per_100g,
-        has_pit: item.attributes?.has_pit,
-        children: item.children || []
-      }))
+    if (productsRes && productsRes.data && Array.isArray(productsRes.data)) {
+      tableData.value = productsRes.data.map(item => {
+        // Get corresponding catalog data if available
+        const catalogData = catalogMap[item.id];
+        
+        return {
+          id: item.id,
+          name: item.name,
+          type: item.is_composite ? 'composite' : item.primary_category || 'wine',
+          price: catalogData?.price || 0, // Use catalog data if available, otherwise default to 0
+          stock: catalogData?.stock || 0, // Use catalog data if available, otherwise default to 0
+          // Map product attributes directly from products API response
+          vintage_year: item.vintage_year,
+          volume_l: item.volume_l,
+          alcohol_pct: item.alcohol_pct,
+          glasses_per_bottle: item.glasses_per_bottle,
+          weight_g: item.weight_g,
+          calories_per_100g: item.calories_per_100g,
+          has_pit: item.has_pit,
+          children: item.children || [], // Child components for composite products
+          // Store original API fields that might be useful
+          product_type_id: item.product_type_id,
+          is_composite: item.is_composite,
+          is_active: item.is_active,
+          sku: item.sku,
+          primary_category: item.primary_category,
+          base_unit_code: item.base_unit_code
+        };
+      });
     } else {
-      console.warn('Invalid data structure received from API:', res);
+      console.warn('Invalid data structure received from API:', productsRes);
       tableData.value = [];
     }
   } catch (error) {
@@ -121,29 +158,51 @@ const fetchCatalogByLocation = async (locationId: number) => {
 const fetchAllProducts = async () => {
   loading.value = true
   try {
-    // Get all products from backend API
-    const res = await request.get({ url: '/api/v1/products' })
-    
+    // Get all products from backend API (this gives us product metadata)
+    const productsRes = await request.get({ url: '/api/v1/products' });
+    // Also get catalog data which includes pricing and stock info
+    const catalogRes = await request.get({ url: '/api/v1/catalog?location=1' });
+
+    // Create a map of catalog data by product ID for quick lookup
+    const catalogMap: Record<number, any> = {};
+    if (catalogRes && catalogRes.data && Array.isArray(catalogRes.data.items)) {
+      catalogRes.data.items.forEach(item => {
+        catalogMap[item.id] = item;
+      });
+    }
+
     // Transform backend data to match our interface
-    if (res && res.data && Array.isArray(res.data)) {
-      tableData.value = res.data.map(item => ({
-        id: item.id,
-        name: item.name,
-        type: item.is_composite ? 'composite' : item.primary_category || 'wine',
-        price: item.price || 0,
-        stock: item.stock || 0,
-        // Map product attributes if they exist
-        vintage_year: item.attributes?.vintage_year,
-        volume_l: item.attributes?.volume_l,
-        alcohol_pct: item.attributes?.alcohol_pct,
-        glasses_per_bottle: item.attributes?.glasses_per_bottle,
-        weight_g: item.attributes?.weight_g,
-        calories_per_100g: item.attributes?.calories_per_100g,
-        has_pit: item.attributes?.has_pit,
-        children: item.children || [] // Child components for composite products
-      }))
+    if (productsRes && productsRes.data && Array.isArray(productsRes.data)) {
+      tableData.value = productsRes.data.map(item => {
+        // Get corresponding catalog data if available
+        const catalogData = catalogMap[item.id];
+        
+        return {
+          id: item.id,
+          name: item.name,
+          type: item.is_composite ? 'composite' : item.primary_category || 'wine',
+          price: catalogData?.price || 0, // Use catalog data if available, otherwise default to 0
+          stock: catalogData?.stock || 0, // Use catalog data if available, otherwise default to 0
+          // Map product attributes directly from products API response
+          vintage_year: item.vintage_year,
+          volume_l: item.volume_l,
+          alcohol_pct: item.alcohol_pct,
+          glasses_per_bottle: item.glasses_per_bottle,
+          weight_g: item.weight_g,
+          calories_per_100g: item.calories_per_100g,
+          has_pit: item.has_pit,
+          children: item.children || [], // Child components for composite products
+          // Store original API fields that might be useful
+          product_type_id: item.product_type_id,
+          is_composite: item.is_composite,
+          is_active: item.is_active,
+          sku: item.sku,
+          primary_category: item.primary_category,
+          base_unit_code: item.base_unit_code
+        };
+      });
     } else {
-      console.warn('Invalid data structure received from API:', res);
+      console.warn('Invalid data structure received from API:', productsRes);
       tableData.value = [];
     }
   } catch (error) {
@@ -156,10 +215,37 @@ const fetchAllProducts = async () => {
 
 const saveProduct = async () => {
   try {
+    // Prepare data for API - only send essential fields to avoid conflicts
+    const productData = {
+      id: currentProduct.id,
+      name: currentProduct.name,
+      type: currentProduct.type,
+      price: currentProduct.price,
+      stock: currentProduct.stock,
+      // Wine specific
+      vintage_year: currentProduct.vintage_year,
+      volume_l: currentProduct.volume_l,
+      alcohol_pct: currentProduct.alcohol_pct,
+      glasses_per_bottle: currentProduct.glasses_per_bottle,
+      // Olives specific
+      weight_g: currentProduct.weight_g,
+      calories_per_100g: currentProduct.calories_per_100g,
+      has_pit: currentProduct.has_pit,
+      // Composite specific
+      components: currentProduct.components,
+      // Additional fields
+      product_type_id: currentProduct.product_type_id,
+      is_composite: currentProduct.is_composite,
+      is_active: currentProduct.is_active,
+      sku: currentProduct.sku,
+      primary_category: currentProduct.primary_category,
+      base_unit_code: currentProduct.base_unit_code
+    };
+
     if (dialogType.value === 'add') {
-      await request.post({ url: '/api/v1/products', data: currentProduct })
+      await request.post({ url: '/api/v1/products', data: productData })
     } else {
-      await request.put({ url: `/api/v1/products/${currentProduct.id}`, data: currentProduct })
+      await request.put({ url: `/api/v1/products/${currentProduct.id}`, data: productData })
     }
     ElMessage.success('Saved successfully')
     dialogVisible.value = false
