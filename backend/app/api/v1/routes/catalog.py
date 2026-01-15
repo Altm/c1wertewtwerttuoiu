@@ -9,4 +9,4 @@ router = APIRouter(prefix="/catalog", tags=["catalog"])
 @router.get("")
 def get_catalog(location: int = Query(...), db: Session = Depends(get_db)):
     service = CatalogService(db)
-    return {"location_id": location, "items": service.catalog_for_location(location)}
+    return {"location_id": location, "products": service.catalog_for_location(location)}
