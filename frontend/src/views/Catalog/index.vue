@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import request from '@/axios'
 
 interface ProductComponent {
   product_id: number
@@ -13,6 +14,8 @@ interface Product {
   type: 'wine' | 'olives' | 'composite'
   price: number
   stock: number
+  expanded?: boolean
+  level?: number
   // Wine specific
   vintage_year?: number
   volume_l?: number
@@ -27,6 +30,7 @@ interface Product {
   children?: Product[]
 }
 
+// Backend API calls
 const loading = ref(false)
 const tableData = ref<Product[]>([])
 const dialogVisible = ref(false)
@@ -53,66 +57,112 @@ const currentProduct = reactive<Product>({ ...defaultProduct })
 const fetchCatalog = async () => {
   loading.value = true
   try {
-    // Mock data to demonstrate Tree Table functionality
-    // In production, replace with: const res = await axios.get('/api/v1/catalog')
-    setTimeout(() => {
-      tableData.value = [
-        {
-          id: 1,
-          name: 'Cabernet Sauvignon 2018',
-          type: 'wine',
-          price: 1200,
-          stock: 45,
-          vintage_year: 2018,
-          volume_l: 0.75,
-          alcohol_pct: 13.5,
-          glasses_per_bottle: 6
-        },
-        {
-          id: 2,
-          name: 'Greek Olives',
-          type: 'olives',
-          price: 350,
-          stock: 120,
-          weight_g: 300,
-          calories_per_100g: 115,
-          has_pit: true
-        },
-        {
-          id: 3,
-          name: 'Wine & Snack Set',
-          type: 'composite',
-          price: 1500,
-          stock: 10,
-          children: [
-            {
-              id: 101,
-              name: 'Cabernet Sauvignon 2018 (1 btl)',
-              type: 'wine',
-              price: 1200,
-              stock: 45,
-              vintage_year: 2018,
-              volume_l: 0.75,
-              alcohol_pct: 13.5,
-              glasses_per_bottle: 6
-            },
-            {
-              id: 102,
-              name: 'Greek Olives (1 can)',
-              type: 'olives',
-              price: 350,
-              stock: 120,
-              weight_g: 300,
-              calories_per_100g: 115,
-              has_pit: true
-            }
-          ]
-        }
-      ]
-      loading.value = false
-    }, 500)
-  } catch (e) {
+    // Get catalog from backend API
+    const res = await request.get({ url: '/api/v1/products' })
+    
+    // Transform backend data to match our interface
+    tableData.value = res.data.map(item => ({
+      id: item.id,
+      name: item.name,
+      type: item.is_composite ? 'composite' : item.primary_category || 'wine',
+      price: item.price || 0,
+      stock: item.stock || 0,
+      vintage_year: item.attributes?.vintage_year,
+      volume_l: item.attributes?.volume_l,
+      alcohol_pct: item.attributes?.alcohol_pct,
+      glasses_per_bottle: item.attributes?.glasses_per_bottle,
+      weight_g: item.attributes?.weight_g,
+      calories_per_100g: item.attributes?.calories_per_100g,
+      has_pit: item.attributes?.has_pit,
+      children: item.children || []
+    }))
+  } catch (error) {
+    console.error('Error fetching catalog:', error)
+    ElMessage.error('Failed to load catalog')
+  } finally {
     loading.value = false
+  }
+}
+
+const fetchCatalogByLocation = async (locationId: number) => {
+  loading.value = true
+  try {
+    // Get catalog filtered by location from backend API
+    const res = await request.get({ url: `/api/v1/catalog?location=${locationId}` })
+    
+    // Transform backend response to match our interface
+    // For now, just map the basic fields, later we could enhance with child components
+    tableData.value = res.data.items.map(item => ({
+      id: item.id,
+      name: item.name,
+      type: item.category || 'wine', // Use category from backend
+      price: item.price || 0,
+      stock: item.stock || 0,
+      children: [] // Will be populated if this is a composite product
+    }))
+  } catch (error) {
+    console.error('Error fetching catalog by location:', error)
+    ElMessage.error('Failed to load catalog')
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchAllProducts = async () => {
+  loading.value = true
+  try {
+    // Get all products from backend API
+    const res = await request.get({ url: '/api/v1/products' })
+    
+    // Transform backend data to match our interface
+    tableData.value = res.data.map(item => ({
+      id: item.id,
+      name: item.name,
+      type: item.is_composite ? 'composite' : item.primary_category || 'wine',
+      price: item.price || 0,
+      stock: item.stock || 0,
+      // Map product attributes if they exist
+      vintage_year: item.attributes?.vintage_year,
+      volume_l: item.attributes?.volume_l,
+      alcohol_pct: item.attributes?.alcohol_pct,
+      glasses_per_bottle: item.attributes?.glasses_per_bottle,
+      weight_g: item.attributes?.weight_g,
+      calories_per_100g: item.attributes?.calories_per_100g,
+      has_pit: item.attributes?.has_pit,
+      children: item.children || [] // Child components for composite products
+    }))
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    ElMessage.error('Failed to load products')
+  } finally {
+    loading.value = false
+  }
+}
+
+const saveProduct = async () => {
+  try {
+    if (dialogType.value === 'add') {
+      await request.post({ url: '/api/v1/products', data: currentProduct })
+    } else {
+      await request.put({ url: `/api/v1/products/${currentProduct.id}`, data: currentProduct })
+    }
+    ElMessage.success('Saved successfully')
+    dialogVisible.value = false
+    fetchCatalog()
+  } catch (error) {
+    console.error('Error saving product:', error)
+    ElMessage.error('Failed to save product')
+  }
+}
+
+const deleteProduct = async (productId: number) => {
+  try {
+    await request.delete({ url: `/api/v1/products/${productId}` })
+    ElMessage.success('Deleted successfully')
+    fetchCatalog()
+  } catch (error) {
+    console.error('Error deleting product:', error)
+    ElMessage.error('Failed to delete product')
   }
 }
 
@@ -132,15 +182,8 @@ const handleEdit = (row: Product) => {
 const handleDelete = (row: Product) => {
   ElMessageBox.confirm(`Delete ${row.name}?`, 'Warning', { type: 'warning' })
     .then(() => {
-      ElMessage.success('Deleted')
-      fetchCatalog()
+      deleteProduct(row.id)
     })
-}
-
-const saveProduct = () => {
-  ElMessage.success('Saved successfully')
-  dialogVisible.value = false
-  fetchCatalog()
 }
 
 const addComponent = () => {
@@ -152,8 +195,32 @@ const removeComponent = (index: number) => {
   currentProduct.components?.splice(index, 1)
 }
 
+// Toggle expand for composite products
+const toggleExpand = (row: Product) => {
+  // Element Plus handles expansion automatically when using tree table
+  // This is just for UI feedback
+  row.expanded = !row.expanded
+}
+
+// Make sure saveProduct method is defined
+const saveProduct = async () => {
+  try {
+    if (dialogType.value === 'add') {
+      await request.post({ url: '/api/v1/products', data: currentProduct })
+    } else {
+      await request.put({ url: `/api/v1/products/${currentProduct.id}`, data: currentProduct })
+    }
+    ElMessage.success('Saved successfully')
+    dialogVisible.value = false
+    fetchCatalog()
+  } catch (error) {
+    console.error('Error saving product:', error)
+    ElMessage.error('Failed to save product')
+  }
+}
+
 onMounted(() => {
-  fetchCatalog()
+  fetchAllProducts() // Fetch all products initially
 })
 </script>
 
@@ -161,7 +228,11 @@ onMounted(() => {
   <div class="app-container p-4">
     <div class="mb-4 flex justify-between items-center">
       <h2 class="text-xl font-bold">Catalog & Inventory</h2>
-      <el-button type="primary" @click="handleAdd">Add Product</el-button>
+      <div class="flex space-x-2">
+        <el-button type="primary" @click="handleAdd">Add Product</el-button>
+        <el-button @click="fetchCatalogByLocation(1)">View by Location</el-button>
+        <el-button @click="fetchAllProducts">View All Products</el-button>
+      </div>
     </div>
 
     <el-table
@@ -169,14 +240,20 @@ onMounted(() => {
       :data="tableData"
       row-key="id"
       border
-      default-expand-all
       :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
     >
-      <el-table-column prop="name" label="Name" min-width="200" />
-
-      <el-table-column prop="type" label="Type" width="100">
+      <el-table-column prop="name" label="Product Name" min-width="200">
         <template #default="{ row }">
-          <el-tag :type="row.type === 'composite' ? 'warning' : 'success'">
+          <span :style="{ paddingLeft: (row.level || 0) * 20 + 'px' }">{{ row.name }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column prop="type" label="Type" width="120">
+        <template #default="{ row }">
+          <el-tag 
+            :type="row.type === 'composite' ? 'warning' : 
+                   row.type === 'wine' ? 'success' : 'info'"
+          >
             {{ row.type.toUpperCase() }}
           </el-tag>
         </template>
@@ -184,25 +261,43 @@ onMounted(() => {
 
       <el-table-column label="Attributes" min-width="250">
         <template #default="{ row }">
-          <div v-if="row.type === 'wine'" class="text-xs">
-            Vintage: {{ row.vintage_year }} | Vol: {{ row.volume_l }}L | Alc: {{ row.alcohol_pct }}%
+          <div v-if="row.type === 'wine'" class="text-xs text-gray-600">
+            <div v-if="row.vintage_year">Vintage: {{ row.vintage_year }}</div>
+            <div v-if="row.volume_l">Volume: {{ row.volume_l }}L</div>
+            <div v-if="row.alcohol_pct">Alcohol: {{ row.alcohol_pct }}%</div>
+            <div v-if="row.glasses_per_bottle">Glasses per bottle: {{ row.glasses_per_bottle }}</div>
           </div>
-          <div v-else-if="row.type === 'olives'" class="text-xs">
-            Weight: {{ row.weight_g }}g | {{ row.calories_per_100g }}kcal | {{ row.has_pit ? 'Pit' : 'No Pit' }}
+          <div v-else-if="row.type === 'olives'" class="text-xs text-gray-600">
+            <div v-if="row.weight_g">Weight: {{ row.weight_g }}g</div>
+            <div v-if="row.calories_per_100g">Calories: {{ row.calories_per_100g }}/100g</div>
+            <div v-if="row.has_pit !== undefined">Pit: {{ row.has_pit ? 'Yes' : 'No' }}</div>
           </div>
-          <div v-else-if="row.type === 'composite'" class="text-xs text-gray-500">
-            <i>Contains {{ row.children?.length || 0 }} items</i>
+          <div v-else-if="row.type === 'composite'" class="text-xs text-purple-600">
+            <i>Composite product with {{ row.children?.length || 0 }} components</i>
           </div>
         </template>
       </el-table-column>
 
       <el-table-column prop="stock" label="Stock" width="100" align="center" />
-      <el-table-column prop="price" label="Price" width="100" align="right" />
-
-      <el-table-column label="Actions" width="150" align="center">
+      <el-table-column prop="price" label="Price" width="100" align="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="handleEdit(row)">Edit</el-button>
-          <el-button link type="danger" @click="handleDelete(row)">Delete</el-button>
+          ${{ parseFloat(row.price || 0).toFixed(2) }}
+        </template>
+      </el-table-column>
+
+      <el-table-column label="Actions" width="180" align="center">
+        <template #default="{ row }">
+          <el-button link type="primary" size="small" @click="handleEdit(row)">Edit</el-button>
+          <el-button link type="danger" size="small" @click="handleDelete(row)">Delete</el-button>
+          <el-button 
+            v-if="row.type === 'composite'" 
+            link 
+            type="info" 
+            size="small" 
+            @click="toggleExpand(row)"
+          >
+            {{ row.expanded ? 'Collapse' : 'Expand' }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
