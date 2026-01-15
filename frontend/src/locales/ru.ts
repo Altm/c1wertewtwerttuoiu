@@ -50,7 +50,10 @@ export default {
     notSpace: 'Не должно содержать пробелы',
     notSpecialCharacters: 'Не должно содержать специальные символы',
     isEqual: 'Введённые значения не совпадают',
-    setting: 'Настройки'
+    setting: 'Настройки',
+    addSuccess: 'Успешно добавлено',
+    editSuccess: 'Успешно отредактировано',
+    delSuccess: 'Успешно удалено'
   },
   lock: {
     lockScreen: 'Блокировка экрана',
@@ -190,7 +193,25 @@ export default {
     iAgree: 'Я согласен',
     tree: 'Дерево (Tree)',
     hooks: 'Хуки',
-    useWatermark: 'Водяной знак'
+    useWatermark: 'Водяной знак',
+    catalog: 'Каталог',
+    name: 'Название',
+    type: 'Тип',
+    status: 'Статус',
+    actions: 'Действия',
+    category: 'Категория',
+    del: 'Удалить',
+    edit: 'Редактировать',
+    sku: 'Артикул',
+    unit: 'Единица',
+    wine: 'Вино',
+    bakery: 'Хлебобулочные изделия',
+    grocery: 'Бакалея',
+    snack: 'Закуски',
+    set: 'Набор',
+    composite: 'Составной',
+    active: 'Активный',
+    inactive: 'Неактивный'
   },
   permission: {
     hasPermission: 'Пожалуйста, задайте значение прав доступа'

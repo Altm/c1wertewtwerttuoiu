@@ -50,7 +50,10 @@ export default {
     notSpace: 'No puede contener espacios',
     notSpecialCharacters: 'No puede contener caracteres especiales',
     isEqual: 'Las entradas no coinciden',
-    setting: 'Configuración'
+    setting: 'Configuración',
+    addSuccess: 'Agregado correctamente',
+    editSuccess: 'Editado correctamente',
+    delSuccess: 'Eliminado correctamente'
   },
   lock: {
     lockScreen: 'Bloquear pantalla',
@@ -188,7 +191,25 @@ export default {
     personal: 'Personal',
     avatars: 'Lista de avatares',
     iAgree: 'Acepto',
-    tree: 'Árbol (Tree)'
+    tree: 'Árbol (Tree)',
+    catalog: 'Catálogo',
+    name: 'Nombre',
+    type: 'Tipo',
+    status: 'Estado',
+    actions: 'Acciones',
+    category: 'Categoría',
+    del: 'Eliminar',
+    edit: 'Editar',
+    sku: 'SKU',
+    unit: 'Unidad',
+    wine: 'Vino',
+    bakery: 'Panadería',
+    grocery: 'Alimentos',
+    snack: 'Aperitivo',
+    set: 'Conjunto',
+    composite: 'Compuesto',
+    active: 'Activo',
+    inactive: 'Inactivo'
   },
   permission: {
     hasPermission: 'Por favor, configure los permisos de operación'

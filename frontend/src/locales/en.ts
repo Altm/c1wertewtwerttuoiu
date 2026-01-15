@@ -50,7 +50,10 @@ export default {
     notSpecialCharacters: 'Special characters are not allowed',
     isEqual: 'The two are not equal',
     // 列设置
-    setting: 'Setting'
+    setting: 'Setting',
+    addSuccess: 'Added successfully',
+    editSuccess: 'Edited successfully',
+    delSuccess: 'Deleted successfully'
   },
   lock: {
     lockScreen: 'Lock screen',
@@ -191,7 +194,25 @@ export default {
     personal: 'Personal',
     avatars: 'Avatars',
     iAgree: 'I agree',
-    tree: 'Tree'
+    tree: 'Tree',
+    catalog: 'Catalog',
+    name: 'Name',
+    type: 'Type',
+    status: 'Status',
+    actions: 'Actions',
+    category: 'Category',
+    del: 'Delete',
+    edit: 'Edit',
+    sku: 'SKU',
+    unit: 'Unit',
+    wine: 'Wine',
+    bakery: 'Bakery',
+    grocery: 'Grocery',
+    snack: 'Snack',
+    set: 'Set',
+    composite: 'Composite',
+    active: 'Active',
+    inactive: 'Inactive'
   },
   permission: {
     hasPermission: 'Please set the operation permission value'
