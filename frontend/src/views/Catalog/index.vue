@@ -61,21 +61,26 @@ const fetchCatalog = async () => {
     const res = await request.get({ url: '/api/v1/products' })
     
     // Transform backend data to match our interface
-    tableData.value = res.data.map(item => ({
-      id: item.id,
-      name: item.name,
-      type: item.is_composite ? 'composite' : item.primary_category || 'wine',
-      price: item.price || 0,
-      stock: item.stock || 0,
-      vintage_year: item.attributes?.vintage_year,
-      volume_l: item.attributes?.volume_l,
-      alcohol_pct: item.attributes?.alcohol_pct,
-      glasses_per_bottle: item.attributes?.glasses_per_bottle,
-      weight_g: item.attributes?.weight_g,
-      calories_per_100g: item.attributes?.calories_per_100g,
-      has_pit: item.attributes?.has_pit,
-      children: item.children || []
-    }))
+    if (res && res.data && Array.isArray(res.data)) {
+      tableData.value = res.data.map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.is_composite ? 'composite' : item.primary_category || 'wine',
+        price: item.price || 0,
+        stock: item.stock || 0,
+        vintage_year: item.attributes?.vintage_year,
+        volume_l: item.attributes?.volume_l,
+        alcohol_pct: item.attributes?.alcohol_pct,
+        glasses_per_bottle: item.attributes?.glasses_per_bottle,
+        weight_g: item.attributes?.weight_g,
+        calories_per_100g: item.attributes?.calories_per_100g,
+        has_pit: item.attributes?.has_pit,
+        children: item.children || []
+      }))
+    } else {
+      console.warn('Invalid data structure received from API:', res);
+      tableData.value = [];
+    }
   } catch (error) {
     console.error('Error fetching catalog:', error)
     ElMessage.error('Failed to load catalog')
@@ -92,14 +97,19 @@ const fetchCatalogByLocation = async (locationId: number) => {
     
     // Transform backend response to match our interface
     // For now, just map the basic fields, later we could enhance with child components
-    tableData.value = res.data.items.map(item => ({
-      id: item.id,
-      name: item.name,
-      type: item.category || 'wine', // Use category from backend
-      price: item.price || 0,
-      stock: item.stock || 0,
-      children: [] // Will be populated if this is a composite product
-    }))
+    if (res && res.data && res.data.items && Array.isArray(res.data.items)) {
+      tableData.value = res.data.items.map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.category || 'wine', // Use category from backend
+        price: item.price || 0,
+        stock: item.stock || 0,
+        children: [] // Will be populated if this is a composite product
+      }))
+    } else {
+      console.warn('Invalid data structure received from API:', res);
+      tableData.value = [];
+    }
   } catch (error) {
     console.error('Error fetching catalog by location:', error)
     ElMessage.error('Failed to load catalog')
@@ -115,22 +125,27 @@ const fetchAllProducts = async () => {
     const res = await request.get({ url: '/api/v1/products' })
     
     // Transform backend data to match our interface
-    tableData.value = res.data.map(item => ({
-      id: item.id,
-      name: item.name,
-      type: item.is_composite ? 'composite' : item.primary_category || 'wine',
-      price: item.price || 0,
-      stock: item.stock || 0,
-      // Map product attributes if they exist
-      vintage_year: item.attributes?.vintage_year,
-      volume_l: item.attributes?.volume_l,
-      alcohol_pct: item.attributes?.alcohol_pct,
-      glasses_per_bottle: item.attributes?.glasses_per_bottle,
-      weight_g: item.attributes?.weight_g,
-      calories_per_100g: item.attributes?.calories_per_100g,
-      has_pit: item.attributes?.has_pit,
-      children: item.children || [] // Child components for composite products
-    }))
+    if (res && res.data && Array.isArray(res.data)) {
+      tableData.value = res.data.map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.is_composite ? 'composite' : item.primary_category || 'wine',
+        price: item.price || 0,
+        stock: item.stock || 0,
+        // Map product attributes if they exist
+        vintage_year: item.attributes?.vintage_year,
+        volume_l: item.attributes?.volume_l,
+        alcohol_pct: item.attributes?.alcohol_pct,
+        glasses_per_bottle: item.attributes?.glasses_per_bottle,
+        weight_g: item.attributes?.weight_g,
+        calories_per_100g: item.attributes?.calories_per_100g,
+        has_pit: item.attributes?.has_pit,
+        children: item.children || [] // Child components for composite products
+      }))
+    } else {
+      console.warn('Invalid data structure received from API:', res);
+      tableData.value = [];
+    }
   } catch (error) {
     console.error('Error fetching products:', error)
     ElMessage.error('Failed to load products')
