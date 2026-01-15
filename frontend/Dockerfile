@@ -13,6 +13,7 @@ ARG VITE_USE_MOCK=false
 ENV VITE_API_BASE_PATH=${VITE_API_BASE_PATH}
 ENV VITE_USE_MOCK=${VITE_USE_MOCK}
 
+RUN pnpm format
 RUN pnpm run build:pro
 
 FROM nginx:1.27-alpine
